@@ -1,0 +1,5 @@
+# Include EVERYTHING under the package
+graft libero
+
+# Optional: keep wheels clean
+global-exclude *.pyc *.pyo __pycache__ .DS_Store
