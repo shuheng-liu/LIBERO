@@ -56,7 +56,9 @@ def torch_save_model(model, model_path, cfg=None, previous_masks=None):
 
 
 def torch_load_model(model_path, map_location=None):
-    model_dict = torch.load(model_path, map_location=map_location)
+    # weights_only=False: torch>=2.6 defaults it to True, which refuses to
+    # unpickle the EasyDict cfg / numpy masks saved in our own checkpoints.
+    model_dict = torch.load(model_path, map_location=map_location, weights_only=False)
     cfg = None
     if "cfg" in model_dict:
         cfg = model_dict["cfg"]

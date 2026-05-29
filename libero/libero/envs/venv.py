@@ -1,7 +1,10 @@
 import cloudpickle
 import ctypes
-import gym
-import numpy as np
+
+try:
+    import gymnasium as gym
+except ImportError:  # fall back to legacy gym if gymnasium is unavailable
+    import gym
 import numpy as np
 import warnings
 import time

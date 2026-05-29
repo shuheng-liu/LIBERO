@@ -161,7 +161,9 @@ class Benchmark(abc.ABC):
             self.tasks[i].problem_folder,
             self.tasks[i].init_states_file,
         )
-        init_states = torch.load(init_states_path)
+        # weights_only=False: the .pruned_init files are our own trusted data
+        # but contain non-tensor objects torch>=2.6 won't unpickle by default.
+        init_states = torch.load(init_states_path, weights_only=False)
         return init_states
 
     def set_task_embs(self, task_embs):

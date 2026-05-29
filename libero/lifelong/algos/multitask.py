@@ -1,3 +1,4 @@
+import functools
 import os
 
 import numpy as np
@@ -7,6 +8,7 @@ import torch.nn.functional as F
 from torch.utils.data import ConcatDataset, DataLoader, RandomSampler
 
 from libero.lifelong.algos.base import Sequential
+from libero.lifelong.datasets import dataloader_worker_init_fn
 from libero.lifelong.metric import *
 from libero.lifelong.models import *
 from libero.lifelong.utils import *
@@ -36,6 +38,10 @@ class Multitask(Sequential):
             num_workers=self.cfg.train.num_workers,
             sampler=RandomSampler(concat_dataset),
             persistent_workers=True,
+            worker_init_fn=functools.partial(
+                dataloader_worker_init_fn,
+                obs_modality=self.cfg.data.obs.modality,
+            ),
         )
 
         prev_success_rate = -1.0

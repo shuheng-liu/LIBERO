@@ -1,3 +1,4 @@
+import functools
 import os
 import time
 
@@ -8,6 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, RandomSampler
 
+from libero.lifelong.datasets import dataloader_worker_init_fn
 from libero.lifelong.metric import *
 from libero.lifelong.models import *
 from libero.lifelong.utils import *
@@ -143,6 +145,10 @@ class Sequential(nn.Module, metaclass=AlgoMeta):
             num_workers=self.cfg.train.num_workers,
             sampler=RandomSampler(dataset),
             persistent_workers=True,
+            worker_init_fn=functools.partial(
+                dataloader_worker_init_fn,
+                obs_modality=self.cfg.data.obs.modality,
+            ),
         )
 
         prev_success_rate = -1.0
