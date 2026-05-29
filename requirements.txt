@@ -1,15 +1,24 @@
- hydra-core==1.2.0
- numpy==1.22.4 
- wandb==0.13.1 
- easydict==1.9 
- transformers==4.21.1
- opencv-python==4.6.0.66 
- robomimic==0.2.0 
- einops==0.4.1
- thop==0.1.1-2209072238
- robosuite==1.4.0
- bddl==1.0.1
- future==0.18.2 
- matplotlib==3.5.3 
- cloudpickle==2.1.0
- gym==0.25.2
+# NOTE: numpy 2.x + gymnasium. The original pins targeted numpy 1.22 and the
+# deprecated `gym` package; the lower bounds below are the minimums that
+# co-install and run on numpy 2.x. robosuite/robomimic/bddl are kept at the
+# versions LIBERO is coupled to (they work fine under numpy 2.x).
+hydra-core>=1.2
+numpy>=2,<3
+wandb>=0.13
+easydict>=1.9
+transformers>=4.40
+opencv-python>=4.10
+robomimic==0.2.0
+# robomimic depends on egl_probe, whose upstream CMakeLists requests a CMake
+# policy version that CMake >= 4 rejects. Install from a fork that raises the
+# minimum to 3.5 (pinned to a commit for reproducibility).
+egl_probe @ git+https://github.com/shuheng-liu/egl_probe@e3875041267127503d823c7dae62d91a4417d9a1
+einops>=0.4
+thop==0.1.1-2209072238
+robosuite==1.4.0
+bddl==1.0.1
+future>=0.18
+matplotlib>=3.7
+cloudpickle>=2.1
+gymnasium>=1.0
+huggingface_hub
