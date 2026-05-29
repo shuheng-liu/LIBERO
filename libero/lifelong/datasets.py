@@ -16,6 +16,14 @@ from torch.utils.data import Dataset
 """
 
 
+def dataloader_worker_init_fn(worker_id, obs_modality):
+    # "spawn" DataLoader workers are fresh interpreters where robomimic's global
+    # obs-utils registry (OBS_KEYS_TO_MODALITIES) is empty. The main process
+    # sets it in get_dataset(); re-initialize it here so process_obs() in each
+    # worker can map observation keys to their modality.
+    ObsUtils.initialize_obs_utils_with_obs_specs({"obs": obs_modality})
+
+
 def get_dataset(
     dataset_path,
     obs_modality,
@@ -74,6 +82,14 @@ class SequenceVLDataset(Dataset):
         return_dict["task_emb"] = self.task_emb
         return return_dict
 
+    def __getstate__(self):
+        # robomimic's SequenceDataset keeps an open h5py handle that cannot be
+        # pickled. Close it so the dataset can be shipped to DataLoader workers
+        # under the "spawn" start method (forced in main.py because CUDA is
+        # already initialized); each worker reopens the file lazily on access.
+        self.sequence_dataset.close_and_delete_hdf5_handle()
+        return self.__dict__
+
 
 class GroupedTaskDataset(Dataset):
     def __init__(self, sequence_datasets, task_embs):
@@ -125,6 +141,13 @@ class GroupedTaskDataset(Dataset):
         return_dict = self.sequence_datasets[oti].__getitem__(oi)
         return_dict["task_emb"] = self.task_embs[oti]
         return return_dict
+
+    def __getstate__(self):
+        # See SequenceVLDataset.__getstate__: drop the unpicklable h5py handles
+        # so the dataset survives being sent to "spawn" DataLoader workers.
+        for ds in self.sequence_datasets:
+            ds.close_and_delete_hdf5_handle()
+        return self.__dict__
 
 
 class TruncatedSequenceDataset(Dataset):

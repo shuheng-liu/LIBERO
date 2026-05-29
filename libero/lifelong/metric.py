@@ -1,4 +1,5 @@
 import copy
+import functools
 import gc
 import numpy as np
 import os
@@ -11,6 +12,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from libero.libero.envs import OffScreenRenderEnv, SubprocVectorEnv, DummyVectorEnv
+from libero.lifelong.datasets import dataloader_worker_init_fn
 from libero.libero.utils.time_utils import Timer
 from libero.libero.utils.video_utils import VideoWriter
 from libero.lifelong.utils import *
@@ -104,7 +106,7 @@ def evaluate_one_task_success(
         init_states_path = os.path.join(
             cfg.init_states_folder, task.problem_folder, task.init_states_file
         )
-        init_states = torch.load(init_states_path)
+        init_states = torch.load(init_states_path, weights_only=False)
         num_success = 0
         for i in range(eval_loop_num):
             env.reset()
@@ -209,6 +211,10 @@ def evaluate_loss(cfg, algo, benchmark, datasets):
             batch_size=cfg.eval.batch_size,
             num_workers=cfg.eval.num_workers,
             shuffle=False,
+            worker_init_fn=functools.partial(
+                dataloader_worker_init_fn,
+                obs_modality=cfg.data.obs.modality,
+            ),
         )
         test_loss = 0
         for data in dataloader:
