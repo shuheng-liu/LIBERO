@@ -11,8 +11,8 @@ opencv-python>=4.10
 robomimic==0.2.0
 # robomimic depends on egl_probe, whose upstream CMakeLists requests a CMake
 # policy version that CMake >= 4 rejects. Install from a fork that raises the
-# minimum to 3.5 (pinned to a commit for reproducibility).
-egl_probe @ git+https://github.com/shuheng-liu/egl_probe@e3875041267127503d823c7dae62d91a4417d9a1
+# minimum to 3.5 (pinned to an immutable tag for reproducibility).
+egl_probe @ git+https://github.com/shuheng-liu/egl_probe@v1.0.1-cmake4
 einops>=0.4
 thop==0.1.1-2209072238
 robosuite==1.4.0
