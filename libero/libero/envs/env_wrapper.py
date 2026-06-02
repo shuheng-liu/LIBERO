@@ -1,12 +1,42 @@
 import os
 import numpy as np
-import robosuite as suite
 import matplotlib.cm as cm
 
 from robosuite.utils.errors import RandomizationError
 
 import libero.libero.envs.bddl_utils as BDDLUtils
 from libero.libero.envs import *
+
+
+def load_arm_controller_config(controller="OSC_POSE", robots=("Panda",)):
+    """Load a controller config that works on both robosuite 1.4 and >= 1.5.
+
+    robosuite 1.5 removed the flat ``load_controller_config`` loader in favour of
+    the composite-controller framework. This helper returns a config accepted by
+    the env constructor's ``controller_configs=`` kwarg on either version:
+
+    * robosuite >= 1.5: load the part-level config (e.g. ``OSC_POSE``) and wrap it
+      into a ``BASIC`` composite controller via ``refactor_composite_controller_config``.
+      The part config carries the same numeric defaults (kp, output limits, ...) as
+      the 1.4 controller, so the arm behaves identically.
+    * robosuite <= 1.4: fall back to the original ``load_controller_config``.
+
+    LIBERO is single-arm (Panda), so the arm part is wrapped under the ``"right"`` key.
+    """
+    robot_type = robots[0] if isinstance(robots, (list, tuple)) else robots
+    try:
+        from robosuite.controllers import load_part_controller_config
+        from robosuite.controllers.composite.composite_controller_factory import (
+            refactor_composite_controller_config,
+        )
+    except ImportError:
+        # robosuite <= 1.4
+        from robosuite import load_controller_config
+
+        return load_controller_config(default_controller=controller)
+
+    part_config = load_part_controller_config(default_controller=controller)
+    return refactor_composite_controller_config(part_config, robot_type, ["right"])
 
 
 class ControlEnv:
@@ -44,7 +74,7 @@ class ControlEnv:
             bddl_file_name
         ), f"[error] {bddl_file_name} does not exist!"
 
-        controller_configs = suite.load_controller_config(default_controller=controller)
+        controller_configs = load_arm_controller_config(controller, robots)
 
         problem_info = BDDLUtils.get_problem_info(bddl_file_name)
         # Check if we're using a multi-armed environment and use env_configuration argument if so
