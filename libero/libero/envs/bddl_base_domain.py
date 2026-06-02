@@ -3,7 +3,17 @@ import os
 import robosuite.utils.transform_utils as T
 
 from copy import deepcopy
-from robosuite.environments.manipulation.single_arm_env import SingleArmEnv
+from libero.libero.envs._compat import ROBOSUITE_GE_15
+
+if ROBOSUITE_GE_15:
+    # robosuite >= 1.5 removed SingleArmEnv; ManipulationEnv is the single-arm base.
+    from robosuite.environments.manipulation.manipulation_env import (
+        ManipulationEnv as _ManipulationBase,
+    )
+else:
+    from robosuite.environments.manipulation.single_arm_env import (
+        SingleArmEnv as _ManipulationBase,
+    )
 from robosuite.models.tasks import ManipulationTask
 from robosuite.utils.placement_samplers import SequentialCompositeSampler
 from robosuite.utils.observables import Observable, sensor
@@ -34,7 +44,7 @@ def register_problem(target_class):
 import time
 
 
-class BDDLBaseDomain(SingleArmEnv):
+class BDDLBaseDomain(_ManipulationBase):
     """
     A base domain for parsing bddl files.
     """
@@ -132,11 +142,13 @@ class BDDLBaseDomain(SingleArmEnv):
         self._arena_xml = os.path.join(self.custom_asset_dir, scene_xml)
         self._arena_properties = scene_properties
 
+        # robosuite >= 1.5 renamed the fixed mount kwarg `mount_types` -> `base_types`.
+        base_kwarg = {"base_types": "default"} if ROBOSUITE_GE_15 else {"mount_types": "default"}
         super().__init__(
             robots=robots,
             env_configuration=env_configuration,
             controller_configs=controller_configs,
-            mount_types="default",
+            **base_kwarg,
             gripper_types=gripper_types,
             initialization_noise=initialization_noise,
             use_camera_obs=use_camera_obs,

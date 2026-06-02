@@ -161,7 +161,14 @@ class ControlEnv:
         self.env.reset_from_xml_string(xml_string)
 
     def seed(self, seed):
-        self.env.seed(seed)
+        # robosuite <= 1.4 exposes env.seed(); >= 1.5 dropped it and drives placement /
+        # resets off env.rng (a numpy Generator). Re-seed that Generator in place so the
+        # placement samplers, which hold a reference to it, become deterministic.
+        seed_fn = getattr(self.env, "seed", None)
+        if callable(seed_fn):
+            seed_fn(seed)
+        elif getattr(self.env, "rng", None) is not None:
+            self.env.rng.bit_generator.state = np.random.default_rng(seed).bit_generator.state
 
     def set_init_state(self, init_state):
         return self.regenerate_obs_from_state(init_state)

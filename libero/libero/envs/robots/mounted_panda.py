@@ -3,6 +3,8 @@ import numpy as np
 from robosuite.models.robots.manipulators.manipulator_model import ManipulatorModel
 from robosuite.utils.mjcf_utils import xml_path_completion
 
+from libero.libero.envs._compat import ROBOSUITE_GE_15
+
 
 class MountedPanda(ManipulatorModel):
     """
@@ -10,6 +12,8 @@ class MountedPanda(ManipulatorModel):
     Args:
         idn (int or str): Number or some other unique identification string for this robot instance
     """
+
+    arms = ["right"]  # robosuite >= 1.5 reads this class attr on the robot model
 
     def __init__(self, idn=0):
         super().__init__(xml_path_completion("robots/panda/robot.xml"), idn=idn)
@@ -20,16 +24,20 @@ class MountedPanda(ManipulatorModel):
         )
 
     @property
-    def default_mount(self):
+    def default_mount(self):  # robosuite <= 1.4
+        return "RethinkMount"
+
+    @property
+    def default_base(self):  # robosuite >= 1.5 (mounts were renamed to bases)
         return "RethinkMount"
 
     @property
     def default_gripper(self):
-        return "PandaGripper"
+        return {"right": "PandaGripper"} if ROBOSUITE_GE_15 else "PandaGripper"
 
     @property
     def default_controller_config(self):
-        return "default_panda"
+        return {"right": "default_panda"} if ROBOSUITE_GE_15 else "default_panda"
 
     @property
     def init_qpos(self):
