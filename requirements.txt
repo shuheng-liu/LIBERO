@@ -15,7 +15,7 @@ robomimic==0.2.0
 egl_probe @ git+https://github.com/shuheng-liu/egl_probe@v1.0.1-cmake4
 einops>=0.4
 thop==0.1.1-2209072238
-robosuite==1.4.0
+robosuite==1.5.2  # composite-controller framework; loaded via load_arm_controller_config
 bddl==1.0.1
 future>=0.18
 matplotlib>=3.7

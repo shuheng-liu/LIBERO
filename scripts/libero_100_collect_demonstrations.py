@@ -19,13 +19,13 @@ import os
 import robosuite as suite
 import time
 from glob import glob
-from robosuite import load_controller_config
 from robosuite.wrappers import DataCollectionWrapper, VisualizationWrapper
 from robosuite.utils.input_utils import input2action
 
 
 import libero.libero.envs.bddl_utils as BDDLUtils
 from libero.libero.envs import *
+from libero.libero.envs.env_wrapper import load_arm_controller_config
 from termcolor import colored
 
 
@@ -269,8 +269,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Get controller config
-    controller_config = load_controller_config(default_controller=args.controller)
+    # Get controller config (robosuite 1.4 / >= 1.5 compatible)
+    controller_config = load_arm_controller_config(args.controller, args.robots)
 
     # Create argument configuration
     config = {
